@@ -1,15 +1,18 @@
 import logging
 
 def setup_logger():
-    logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
+    '''
+    Start local file logger for DEBUG information and console logger for INFO logs.
+    '''
+    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
     logger = logging.getLogger()
 
-    fileHandler = logging.FileHandler("plotter.log")
-    fileHandler.setFormatter(logFormatter)
-    fileHandler.setLevel(logging.DEBUG)
-    logger.addHandler(fileHandler)
+    file_handler = logging.FileHandler("plotter.log")
+    file_handler.setFormatter(log_formatter)
+    file_handler.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
 
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
-    fileHandler.setLevel(logging.INFO)
-    logger.addHandler(consoleHandler)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(log_formatter)
+    console_handler.setLevel(logging.INFO)
+    logger.addHandler(console_handler)
