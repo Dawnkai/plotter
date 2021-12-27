@@ -16,7 +16,7 @@ This repository contains the following files:
 2. `logging.py` - setup for logging:
 * Logs of level `DEBUG` will be saved to a file named `plotter.log`
 * Logs of level `INFO` will be printed to the console
-3. `database.pt` - script storing images and retrieving them from the database
+3. `database.py` - script storing images and retrieving them from the database
 
 ## Contributing
 Before submitting your pull request please check your code with pylint - settings for pylint are available in `.pylintrc` file. Github Actions will automatically run it on your code on every pull request. Please also remember this is a school project therefore the repository may become inactive after a while when its authors will graduate.
