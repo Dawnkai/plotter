@@ -1,4 +1,6 @@
 # 2D Plotter
+![example workflow](https://github.com/Dawnkai/plotter/actions/workflows/lint.yml/badge.svg) [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs) [![PyPi Python Versions](https://img.shields.io/pypi/pyversions/yt2mp3.svg)](https://pypi.python.org/pypi/yt2mp3/) [![GitHub last commit](https://img.shields.io/github/last-commit/google/skia.svg?style=flat)]()
+
 Project used for Embedded Systems project in Poznań University of Technology.
 The goals of this project are:
 * Taking pictures with PI camera
