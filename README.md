@@ -15,13 +15,37 @@ The goals of this project are:
 ## Repository structure
 This repository contains the following files:
 1. `camera.py` - script controlling the camera (taking and saving pictures **locally**)
-2. `logging.py` - setup for logging:
+2. `logger.py` - setup for logging:
 * Logs of level `DEBUG` will be saved to a file named `plotter.log`
 * Logs of level `INFO` will be printed to the console
 3. `database.py` - script storing images and retrieving them from the database
 4. `app/server.py` - web server hosting the frontend app
 5. `app/static/*` - static files (stylesheets, script files) used in webpages
 6. `app/templates/*` - webpages used in the project
+7. `requirements.pip` - list of libraries required in the project
+
+## Installation
+1. Install python on your Raspberry Pi (Python 3+):
+```bash
+wget https://www.python.org/ftp/python/3.6.0/Python-3.6.0.tar.xz
+tar xf Python-3.6.0.tar.xz
+cd Python-3.6.0
+./configure --enable-optimizations --prefix=/usr
+make
+```
+2. Install pip:
+```
+sudo apt-get install python3-pip
+```
+3. Install requirements:
+```
+pip3 install -r requirements.pip
+```
+4. Start the server:
+```
+python3 server.py
+```
+5. Navigate to `http://127.0.0.1:5000/` or `http://0.0.0.0:5000/` in your browser and you are good to go!
 
 ## Contributing
 Before submitting your pull request please check your code with pylint - settings for pylint are available in `.pylintrc` file. Github Actions will automatically run it on your code on every pull request. Please also remember this is a school project therefore the repository may become inactive after a while when its authors will graduate.
