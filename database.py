@@ -11,32 +11,67 @@ class Database:
     :param con: Connection object used to connect to database with
     :param cur: Cursor obeject used to invoke commands on the database
     """
-    def __init__(self, con = None, cur = None):
-        self.con = con
-        self.cur = cur
+    def __init__(self, dbpath):
+        self.dbpath = dbpath
 
 
-    def setup(self, dbpath):
+    def get_connection(self):
         '''
-        Connect to the database and create a cursor.
-        :param dbpath: Absolute path to the database
-        :type dbpath: str
+        Connect to the database.
         '''
-        self.con = sqlite3.connect(dbpath)
-        self.cur = self.con.cursor()
+        con = None
+        try:
+            con = sqlite3.connect(self.dbpath)
+            logger.info("New connection to DB created.")
+        except sqlite3.Error as e:
+            logger.error("Error while creating connection to DB : %s", e)
+        return con
 
 
-    def create_table(self, table_name):
+    def commit_query(self, query):
         '''
-        Create new table to store data in.
-        Default data types in table are: (id, date, name, image).
-        :param table_name: Table name to create
+        Execute SQL query that requires a commit on connection.
+        Typically it's updating, inserting and creating data.
+        :param query: SQL query to execute
         :type table_name: str
         '''
-        logger.debug("Creating new table %s...", table_name)
-        self.cur.execute('''CREATE TABLE IF NOT EXISTS %s
-        (id NUMBER PRIMARY KEY, date DATE, name VARCHAR(30), image BLOB)''' % table_name)
-        logger.info("Table %s created!", table_name)
+        con = None
+        try:
+            con = self.get_connection()
+            cur = con.cursor()
+            logger.debug("Executing commit query : %s...", query)
+            cur.execute(query)
+            con.commit()
+            logger.info("Query %s finished!", query)
+        except sqlite3.Error as e:
+            logger.error("Error while executing query %s : %s", query, e)
+        finally:
+            if con is not None:
+                con.close()
+
+    
+
+    def get_data(self, query):
+        '''
+        Receive data from database.
+        :param query: SQL query to execute (without commit)
+        :type query: str
+        '''
+        con = None
+        result = None
+        try:
+            con = self.get_connection()
+            cur = con.cursor()
+            logger.debug("Executing query : %s...", query)
+            cur.execute(query)
+            logger.info("Query %s executed!", query)
+            result = cur.fetchall()
+        except sqlite3.Error as e:
+            logger.error("Error while executing query %s : %s", query, e)
+        finally:
+            if con is not None:
+                con.close()
+        return result
 
 
     def store_image(self, filepath, table):
@@ -49,11 +84,15 @@ class Database:
         '''
         logger.debug("Storing image %s into table %s...", filepath, table)
         with open(filepath, 'rb') as file:
-            self.con.execute('''INSERT INTO {0} (date, name, image)
-            VALUES({1}, {2}, {3})'''.format(table, datetime.now(),
+            try:
+                self.commit_query('''INSERT INTO {0} (date, name, image)
+                                     VALUES({1}, {2}, {3})'''.format(table, datetime.now(),
                                             filepath, sqlite3.Binary(file.read())))
-            self.con.commit()
-        logger.info("Image %s saved!", filepath)
+                logger.info("Image %s saved!", filepath)
+            except sqlite3.Error as e:
+                logger.error("SQL Error while adding image %s : %s", filepath, e)
+            except Exception as ex:
+                logger.error("Error while adding new image %s : %s", filepath, ex)
 
 
     def retrieve_image(self, table, filepath):
@@ -64,6 +103,85 @@ class Database:
         :param filepath: Absolute filepath of the image to fetch
         :type filepath: str
         '''
+        image = None
         logger.debug("Retrieving image %s from table %s...", filepath, table)
-        self.cur.execute('''SELECT image FROM {0} WHERE name = {1}'''.format(table, filepath))
-        return self.cur.fetchone()
+        try:
+            image = self.get_data('''SELECT image FROM {0} WHERE name = {1}'''.format(table, filepath))
+            if len(image) > 0:
+                image = image[0]
+                logger.info("Image %s retrieved!", filepath)
+            else:
+                logger.error("Image %s does not exist.", filepath)
+                image = None
+        except sqlite3.Error as e:
+            logger.error("SQL Error while fetching image %s : %s", filepath, e)
+        except Exception as ex:
+            logger.error("Error while fetching image %s : %s", filepath, ex)
+        return image
+    
+    
+    def get_state(self, table):
+        '''
+        Fetch current state of the plotter.
+        Available states:
+        * Idle - plotter ready to work
+        * Busy - plotter already plotting
+        * Error - unspecified error, assistance requested
+        :param table: Table name where states are stored
+        :type table: str
+        '''
+        state = "Error"
+        logger.debug("Retrieving state of the plotter...")
+        try:
+            state = self.get_data('''SELECT * FROM {0}'''.format(table))
+            if len(state) == 1:
+                state = state[0][1]
+                logger.info("State retrieved!")
+            else:
+                logger.error("More than one state is present, or none at all.")
+                state = "Error"
+        except sqlite3.Error as e:
+            logger.error("SQL Error while fetching plotter state : %s", e)
+        except Exception as ex:
+            logger.error("Exception while fetching plotter state : %s", ex)
+        return state
+
+
+    def init_state(self, table):
+        '''
+        Create default state of plotter. Call only once.
+        Will not create new status if one already exists.
+        :param table: Table name where states are stored
+        :type table: str
+        '''
+        logger.debug("Creating new plotter state...")
+        try:
+            state = self.get_data('''SELECT * FROM {0}'''.format(table))
+            if len(state) == 0:
+                self.commit_query('''INSERT INTO {0} (id, state) VALUES (1, 'Idle')'''.format(table))
+                logger.info("New state initialized!")
+            else:
+                logger.debug("State table already populated, skipping...")
+        except sqlite3.Error as e:
+            logger.error("SQL Error while initializing new state : %s", e)
+        except Exception as ex:
+            logger.error("Exception while initializing new state : %s", ex)
+
+
+    def change_state(self, table, new_state):
+        '''
+        Change the state of the plotter. If this fails,
+        status will be changed to Error.
+        :param table: Table name where states are stored
+        :type table: str
+        :param new_state: New state to set
+        :type new_state: str
+        '''
+        logger.debug("Changing plotter state to %s...", new_state)
+        try:
+            self.commit_query('''UPDATE {0} SET state = '{1}' WHERE id = 1'''.format(table, new_state))
+            logger.info("Plotter status changed to %s!", new_state)
+        except sqlite3.Error as e:
+            logger.error("SQL Error while changing state to %s : %s", new_state, e)
+        except Exception as ex:
+            logger.error("Exception while changing state to %s : %s", new_state, ex)
