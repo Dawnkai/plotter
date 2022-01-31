@@ -1,3 +1,17 @@
-h1 {
-	color: blue;
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.back-btn {
+	text-align: left !important;
+}
+
+.main {
+	min-height: 100%;
+	min-height: 100vh;
+	
+	display: flex;
+	align-items: center;
 }
