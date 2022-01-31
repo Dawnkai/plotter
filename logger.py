@@ -1,18 +1,40 @@
-import logging
+import logging.config
 
 def setup_logger():
-    '''
-    Start local file logger for DEBUG information and console logger for INFO logs.
-    '''
-    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
-    logger = logging.getLogger()
+    LOGGING_CONFIG = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'standard': {
+                'format': "%(asctime)s [%(levelname)-5.5s]  %(message)s"
+            }
+        },
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'formatter': 'standard',
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stdout'
+            },
+            'file': {
+                'level': 'DEBUG',
+                'formatter': 'standard',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': 'plotter.log',
+                'when': 'D',
+                'interval': 1,
+                'backupCount': 1,
+                'encoding': 'utf-8',
+                'delay': False
+            }
+        },
+        'loggers': {
+            '': {
+                'handlers': ['console', 'file'],
+                'level': 'DEBUG',
+                'propagate': True
+            }
+        }
+    }
 
-    file_handler = logging.FileHandler("plotter.log")
-    file_handler.setFormatter(log_formatter)
-    file_handler.setLevel(logging.DEBUG)
-    logger.addHandler(file_handler)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(log_formatter)
-    console_handler.setLevel(logging.INFO)
-    logger.addHandler(console_handler)
+    logging.config.dictConfig(LOGGING_CONFIG)
