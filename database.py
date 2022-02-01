@@ -72,31 +72,76 @@ class Database:
             if con is not None:
                 con.close()
         return result
+    
+
+    def image_exists(self, name, table):
+        '''
+        Check if image is already in database.
+        :param name: Name of the image
+        :type name: str
+        :param table: Table where images are stored
+        :type table: str
+        '''
+        logger.debug("Checking if image %s already exists...", name)
+        con = None
+        try:
+            con = self.get_connection()
+            cur = con.cursor()
+            cur.execute('''SELECT * FROM {0} WHERE name = "{1}"'''.format(table, name))
+            rows = cur.fetchall()
+            if len(rows) > 0:
+                return True
+            return False
+        except sqlite3.Error as e:
+            logger.error("SQL Error while cheking if image %s exists : %s", name, e)
+        except Exception as ex:
+            logger.error("Error while checking if image %s exists : %s", name, ex)
+        finally:
+            if con is not None:
+                con.close()
 
 
-    def store_image(self, filepath, table):
+
+    def store_image(self, filepath, table, name = None):
         '''
         Store image inside of the database.
         :param filepath: Absolute path to the image file
         :type filepath: str
         :param table: Name of the table to store results in
         :type table: str
+        :param name: This is the name of the picture after saving to db
+        :type name: str
         '''
+        con = None
         logger.debug("Storing image %s into table %s...", filepath, table)
         with open(filepath, 'rb') as file:
             try:
-                query = '''INSERT INTO {0} (date, name, image) VALUES (?, ?, ?)'''.format(table)
+                path = filepath if name is None else name
+                exists = self.image_exists(path, table)
+
                 con = self.get_connection()
                 cur = con.cursor()
-                data = (datetime.now(), filepath, file.read())
-                cur.execute(query, data)
-                con.commit()
-                con.close()
+
+                if exists:
+                    logger.debug("Image %s already exists, overwritting...", path)
+                    query = '''UPDATE {0} SET image = ? WHERE name = "{1}"'''.format(table, path)
+                    data = (file.read(),)
+                    cur.execute(query, data)
+                    con.commit()
+                else:
+                    query = '''INSERT INTO {0} (date, name, image) VALUES (?, ?, ?)'''.format(table)
+                    data = (datetime.now(), path, file.read())
+                    cur.execute(query, data)
+                    con.commit()
+
                 logger.info("Image %s saved!", filepath)
             except sqlite3.Error as e:
                 logger.error("SQL Error while adding image %s : %s", filepath, e)
             except Exception as ex:
                 logger.error("Error while adding new image %s : %s", filepath, ex)
+            finally:
+                if con is not None:
+                    con.close()
     
 
     def get_images(self, table):
