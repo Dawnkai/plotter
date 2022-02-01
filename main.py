@@ -3,6 +3,8 @@ from flask import Flask, redirect, render_template, jsonify, request, url_for
 from werkzeug.utils import secure_filename
 from database import Database
 #from camera import Camera
+from extractor import Extractor
+#from plot import Plotter
 from logger import setup_logger
 import logging
 import os
@@ -13,12 +15,31 @@ app.config['UPLOAD_FOLDER'] = 'static/images'
 
 db = Database("data.db")
 #cam = Camera()
+ext = Extractor()
+#plotter = Plotter()
 logger = logging.getLogger()
 
 def setup():
     setup_logger()
     db.commit_query('''CREATE TABLE IF NOT EXISTS Status (id INTEGER, state TEXT)''')
     db.init_state("Status")
+
+
+def plot(image):
+    plotted = False
+    # Create image for plotting
+    img = db.retrieve_image("Images", image)
+    if img[0]:
+        with open('static/plot.jpg', 'wb') as file:
+            file.write(img[0])
+        # Prevent plot spamming
+        db.change_state("Status", "Busy")
+        ext.set_filepath('static/plot.jpg')
+        # Plot the image
+        #plotter.plot(ext.get_contours())
+        db.change_state("Status", "Idle")
+        plotted = True
+    return plotted
 
 
 @app.route("/", methods=["GET"])
@@ -33,15 +54,21 @@ def plot_page():
         return render_template("plot.html")
     
     # POST
-    plotting = db.get_state("Status")
-    if plotting == "Idle":
-        db.change_state("Status", "Busy")
-        # TODO : Plot
-        db.change_state("Status", "Idle")
-        return jsonify(result="Plotting finished.")
-    else:
-        resp = jsonify({'message': 'Plotter is busy.'})
-        return resp, 403
+    try:
+        plotting = db.get_state("Status")
+        if plotting == "Idle":
+            data = json.loads(request.data.decode("utf-8"))
+            exists = db.image_exists(data['image'], 'Images')
+            if exists:
+                if plot(data['image']):
+                    return jsonify({"message": "Image plotted."}), 200
+                return jsonify({"message": "Cannot plot imagge."}), 403
+            return jsonify({"message": "Image does not exist"}), 404
+        else:
+            return jsonify({'message': 'Plotter is busy.'}), 403
+    except Exception as e:
+        logger.error("Error while plotting an image: %s", e)
+        return jsonify({"message": "Unable to plot image"}), 403
 
 
 @app.route("/camera", methods=["GET", "POST"])
@@ -71,13 +98,23 @@ def images():
             return jsonify({'message': 'Request in incorrect format'}), 401
 
 
-@app.route("/images/<string:name>", methods=["GET"])
+@app.route("/images/<string:name>", methods=["GET", "DELETE"])
 def get_image(name):
-    img = db.retrieve_image("images", name)
-    if img[0]:
-        with open('static/res.jpg', 'wb') as file:
-            file.write(img[0])
-    return jsonify({"message": "Image retrieved."}), 200
+    if request.method == "GET":
+        img = db.retrieve_image("images", name)
+        if img[0]:
+            with open('static/res.jpg', 'wb') as file:
+                file.write(img[0])
+        return jsonify({"message": "Image retrieved."}), 200
+    # DELETE
+    try:
+        removed = db.remove_image("images", name)
+        if removed:
+            return jsonify({"message": "Image removed."}), 200
+        return jsonify({"message": "Unable to remove image."}), 403
+    except Exception as ex:
+        logger.error("Error while removing image %s : %s", name, ex)
+        return jsonify({"message": "Unable to remove image."}), 403
 
 
 @app.route("/display")
@@ -91,9 +128,12 @@ def upload_image():
         if 'img-file' not in request.files:
             return jsonify({"message": "No image provided."}), 401
         file = request.files['img-file']
+        # If no file is specified, browsers send empty files
         if file == '':
             return jsonify({"message": "No image provided."}), 401
+        # Image must have an extension
         if file and '.' in file.filename:
+            # Only jpg files are supported
             if "jpg" in file.filename.rsplit('.', 1)[1].lower():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"))
                 db.store_image(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"), "images", file.filename)
