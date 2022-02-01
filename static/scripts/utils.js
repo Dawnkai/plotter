@@ -22,6 +22,11 @@ $(document).ready(function() {
 		e.preventDefault();
 		window.location.replace("images");
 	});
+	// Redirect to image uploading page
+	$("#to-upload").click(function(e) {
+		e.preventDefault();
+		window.location.replace("upload");
+	})
 	// Redirect to home page
 	$("#back").click(function(e) {
 		e.preventDefault();
@@ -71,6 +76,31 @@ $(document).ready(function() {
 			dataType: "json"
 		})
 	});
+	// Call when user uploads an image
+	$("#upload-form").submit(function(e) {
+		e.preventDefault();
+		var formData = new FormData(this);
+		$.ajax({
+			type: "POST",
+			url: "upload",
+			data: formData,
+			cache: false,
+        	contentType: false,
+        	processData: false,
+			success: function(data) {
+				var el = document.getElementById("upload-resp");
+				if (el) {
+					el.innerHTML = "<span style='color:green'>File uploaded successfully.</span>";
+				}
+			},
+			error: function(xhr, status, error) {
+				var el = document.getElementById("upload-resp");
+				if (el) {
+					el.innerHTML = "<span style='color:red'>" + JSON.parse(xhr.responseText).message + "</span>";
+				}
+			}
+		});
+	});
 	// Call images API when user is on images page
 	// Fetch all image names from database
 	if (window.location.href.indexOf("images") != -1) {
@@ -113,13 +143,16 @@ function displayImages() {
 
 // Increment img_idx and fetch next images
 function getNextImages() {
-	img_idx += 1;
-	el = document.getElementById("img-pag");
-	if (el) {
-		el.innerHTML = "Images: ";
-		el.innerHTML += (img_idx * 5);
-		el.innerHTML += " - ";
-		el.innerHTML += (img_idx * 5) + 5;
+	// Prevent going beyond range
+	if ((img_idx+1) * 5 <  imgs.length) {
+		img_idx += 1;
+		el = document.getElementById("img-pag");
+		if (el) {
+			el.innerHTML = "Images: ";
+			el.innerHTML += (img_idx * 5);
+			el.innerHTML += " - ";
+			el.innerHTML += (img_idx * 5) + 5;
+		}
 	}
 	displayImages();
 }
@@ -148,7 +181,7 @@ function getImage(val) {
 		success: function() {
 			el = document.getElementById("img-list");
 			if (el) {
-				el.innerHTML = "<img style='width:100%;height:300px' src='display/res.jpg'/></br></br>";
+				el.innerHTML = "<img style='width:100%;height:300px' src='display'/></br></br>";
 				el.innerHTML += "<button type='button' class='btn btn-secondary' onClick='displayImages()'>Back</button>"
 			}
 		},
