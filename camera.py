@@ -6,7 +6,7 @@ from picamera import PiCamera
 logger = logging.getLogger()
 
 
-class CameraNode:
+class Camera:
     """
     Main camera node. Responsible for taking pictures and saving them locally.
     :param filename: Absolute filepath (without extension) where node will save images
@@ -19,7 +19,7 @@ class CameraNode:
 
 
     def __init__(self, filename = "/home/pi/Desktop/plotter/images/img",
-                 width = 1920, height = 1080):
+                 width = 640, height = 480):
         self.camera = PiCamera()
         self.filename = filename
         self.width = width
@@ -82,13 +82,12 @@ class CameraNode:
         '''
         Take and save a picture on the local drive.
         '''
-        logger.debug("Please wait 2 seconds")
+        logger.debug("Taking picture, please wait 3 seconds...")
         sleep(2)
-        logger.info("Taking picture...")
         # All pictures have appended time and date for easy search
         filename = self.camera.capture(self.filename + datetime.now()
                                        .strftime("-%d-%m-%Y-%H-%M-%S") + ".jpg")
-        logger.debug("Picture saved to %s", filename)
+        logger.debug("Picture saved to %s.", filename)
 
 
     def take_picture(self):
