@@ -18,7 +18,7 @@ class Camera:
     """
 
 
-    def __init__(self, filename = "/home/pi/Desktop/plotter/images/img",
+    def __init__(self, filename = "/home/pi/Desktop/plotter/static/cam",
                  width = 640, height = 480):
         self.camera = PiCamera()
         self.filename = filename
