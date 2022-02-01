@@ -1,5 +1,5 @@
 import json
-from flask import Flask, redirect, render_template, jsonify, request, url_for
+from flask import Flask, redirect, render_template, jsonify, request, url_for, send_file
 from werkzeug.utils import secure_filename
 from database import Database
 #from camera import Camera
@@ -143,6 +143,31 @@ def upload_image():
         else:
             return jsonify({"message": "File is not an image."}), 401
     return render_template("upload.html")
+
+
+@app.route("/stats/status", methods=["GET"])
+def get_status():
+    try:
+        status = db.get_state("Status")
+        return jsonify({"message": status}), 200
+    except Exception as e:
+        logger.error("Error while getting status : %s", e)
+        return jsonify({"message": "Error"}), 200
+
+
+@app.route("/stats/logs", methods=["GET"])
+def get_logs():
+    try:
+        return send_file("plotter.log", as_attachment=True)
+    except Exception as e:
+        logger.error("Error while sending logs : %s", e)
+        return jsonify({"message": "Unable to send logs"}), 403
+
+
+
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    return render_template("stats.html")
 
 
 if __name__ == "__main__":
