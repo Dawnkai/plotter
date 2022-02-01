@@ -186,6 +186,34 @@ class Database:
         except Exception as ex:
             logger.error("Error while fetching image %s : %s", filepath, ex)
         return image
+
+
+    def remove_image(self, table, image):
+        '''
+        Remove the image from the database.
+        Will do nothing if the image does not exist.
+        :param table: Table where you store images
+        :type table: str
+        :param image: Name of the image to delete
+        :type image: str
+        '''
+        logger.debug("Removing image %s...", image)
+        removed = True
+        try:
+            exists = self.image_exists(image, table)
+            if exists:
+                self.commit_query('''DELETE FROM {0} WHERE name = '{1}' '''.format(table, image))
+            else:
+                logger.debug("Image %s does not exist, skipping removal...", image)
+            logger.info("Image %s removed!", image)
+        except sqlite3.Error as e:
+            removed = False
+            logger.error("SQL Error while deleting image %s : %s", image, e)
+        except Exception as ex:
+            removed = False
+            logger.error("Exception while deleting image %s : %s", image, ex)
+        finally:
+            return removed
     
     
     def get_state(self, table):
