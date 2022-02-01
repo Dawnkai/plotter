@@ -1,0 +1,14 @@
+{% extends "index.html" %}
+{% block content %}
+	<div class="back-btn">
+		<button type="button" class="btn btn-primary btn-sm" id="back">Back</button>
+	</div>
+    </br>
+	<h2 class="card-title">Status</h2>
+    <h5><u>Plotter status: <span id="plotter-status"></span></u></h5>
+    <p><i>You can download the log file by clicking the button below.</i></p>
+    </br>
+    <a class="btn btn-primary mb-2" href="stats/logs" role="button">Download</a>
+    </br>
+    <div id="logs-resp"></div>
+{% endblock %}
