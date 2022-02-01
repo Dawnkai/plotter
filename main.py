@@ -1,5 +1,5 @@
-import time
-from flask import Flask, render_template, jsonify, request
+import json
+from flask import Flask, redirect, render_template, jsonify, request, make_response, url_for
 from database import Database
 #from camera import Camera
 from logger import setup_logger
@@ -53,6 +53,30 @@ def take_picture():
         except Exception as e:
             logger.error("Error while taking a picture: %s", e)
             return jsonify({'message': 'Problem with camera'}), 403
+
+
+@app.route("/images", methods=["GET", "POST"])
+def images():
+    if request.method == "GET":
+        return render_template("images.html")
+    else:
+        try:
+            return jsonify({'images': db.get_images("images")}), 200
+        except KeyError:
+            return jsonify({'message': 'Request in incorrect format'}), 401
+
+
+@app.route("/images/<string:name>", methods=["GET"])
+def get_image(name):
+    img = db.retrieve_image("images", name)
+    response = make_response(img[0])
+    response.headers.set('Content-Type', 'image/jpeg')
+    return response, 200
+
+
+@app.route("/display/<filename>")
+def display_image(filename):
+    return redirect(url_for('static', filename=filename), code=301)
 
 
 if __name__ == "__main__":
