@@ -26,6 +26,10 @@ $(document).ready(function() {
 	$("#to-upload").click(function(e) {
 		e.preventDefault();
 		window.location.replace("upload");
+	});
+	$("#to-logs").click(function(e) {
+		e.preventDefault();
+		window.location.replace("stats");
 	})
 	// Redirect to home page
 	$("#back").click(function(e) {
@@ -131,6 +135,27 @@ $(document).ready(function() {
 				img_idx = 0;
 				imgs = data.images;
 				displayImages("plt");
+			},
+			error: function(xhr, status, error) {
+				err = JSON.parse(xhr.responseText);
+				alert(err.message);
+			},
+			contentType: "application/json",
+			dataType: "json"
+		});
+	}
+	// Fetch plotter status when on status page
+	if (window.location.href.indexOf("stats") != -1) {
+		$.ajax({
+			type: "GET",
+			url: "stats/status",
+			success: function(data) {
+				el = document.getElementById("plotter-status");
+				if (el) {
+					if (data.message === "Idle") { el.innerHTML = "<b style='color:green'>Idle</b>"; }
+					else if (data.message === "Busy") { el.innerHTML = "<b style='color:yellow'>Busy</b>"; }
+					else if (data.message === "Error") { el.innerHTML = "<b style='color:red'>Error</b>"; }
+				}
 			},
 			error: function(xhr, status, error) {
 				err = JSON.parse(xhr.responseText);
