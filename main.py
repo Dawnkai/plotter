@@ -1,11 +1,16 @@
 import json
-from flask import Flask, redirect, render_template, jsonify, request, make_response, url_for
+from flask import Flask, redirect, render_template, jsonify, request, url_for
+from werkzeug.utils import secure_filename
 from database import Database
 #from camera import Camera
 from logger import setup_logger
 import logging
+import os
 
 app = Flask(__name__)
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = 'static/images'
+
 db = Database("data.db")
 #cam = Camera()
 logger = logging.getLogger()
@@ -69,14 +74,35 @@ def images():
 @app.route("/images/<string:name>", methods=["GET"])
 def get_image(name):
     img = db.retrieve_image("images", name)
-    response = make_response(img[0])
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response, 200
+    if img[0]:
+        with open('static/res.jpg', 'wb') as file:
+            file.write(img[0])
+    return jsonify({"message": "Image retrieved."}), 200
 
 
-@app.route("/display/<filename>")
-def display_image(filename):
-    return redirect(url_for('static', filename=filename), code=301)
+@app.route("/display")
+def display_image():
+    return redirect(url_for('static', filename="res.jpg"), code=301)
+
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload_image():
+    if request.method == "POST":
+        if 'img-file' not in request.files:
+            return jsonify({"message": "No image provided."}), 401
+        file = request.files['img-file']
+        if file == '':
+            return jsonify({"message": "No image provided."}), 401
+        if file and '.' in file.filename:
+            if "jpg" in file.filename.rsplit('.', 1)[1].lower():
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"))
+                db.store_image(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"), "images", file.filename)
+                return jsonify({"message": "Image uploaded."}), 200
+            else:
+                return jsonify({"message": "Image is not a jpg."}), 401
+        else:
+            return jsonify({"message": "File is not an image."}), 401
+    return render_template("upload.html")
 
 
 if __name__ == "__main__":
