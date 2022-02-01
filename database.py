@@ -22,7 +22,7 @@ class Database:
         con = None
         try:
             con = sqlite3.connect(self.dbpath)
-            logger.info("New connection to DB created.")
+            logger.debug("New connection to DB created.")
         except sqlite3.Error as e:
             logger.error("Error while creating connection to DB : %s", e)
         return con
@@ -42,7 +42,7 @@ class Database:
             logger.debug("Executing commit query : %s...", query)
             cur.execute(query)
             con.commit()
-            logger.info("Query %s finished!", query)
+            logger.debug("Query %s finished!", query)
         except sqlite3.Error as e:
             logger.error("Error while executing query %s : %s", query, e)
         finally:
@@ -64,7 +64,7 @@ class Database:
             cur = con.cursor()
             logger.debug("Executing query : %s...", query)
             cur.execute(query)
-            logger.info("Query %s executed!", query)
+            logger.debug("Query %s executed!", query)
             result = cur.fetchall()
         except sqlite3.Error as e:
             logger.error("Error while executing query %s : %s", query, e)
@@ -85,14 +85,37 @@ class Database:
         logger.debug("Storing image %s into table %s...", filepath, table)
         with open(filepath, 'rb') as file:
             try:
-                self.commit_query('''INSERT INTO {0} (date, name, image)
-                                     VALUES({1}, {2}, {3})'''.format(table, datetime.now(),
-                                            filepath, sqlite3.Binary(file.read())))
+                query = '''INSERT INTO {0} (date, name, image) VALUES (?, ?, ?)'''.format(table)
+                con = self.get_connection()
+                cur = con.cursor()
+                data = (datetime.now(), filepath, file.read())
+                cur.execute(query, data)
+                con.commit()
+                con.close()
                 logger.info("Image %s saved!", filepath)
             except sqlite3.Error as e:
                 logger.error("SQL Error while adding image %s : %s", filepath, e)
             except Exception as ex:
                 logger.error("Error while adding new image %s : %s", filepath, ex)
+    
+
+    def get_images(self, table):
+        '''
+        Get all image names from table.
+        :param table: Table name to fetch images from
+        :type table: str
+        '''
+        logger.debug("Fetching images from table %s...", table)
+        data = None
+        try:
+            rows = self.get_data('''SELECT name FROM {0}'''.format(table))
+            data = [row[0] for row in rows]
+            logger.debug("Images fetched.")
+        except sqlite3.Error as e:
+            logger.error("SQL Error while fetching images from table %s : %s", table, e)
+        except Exception as ex:
+            logger.error("Error while fetching images from table %s : %s", table, ex)
+        return data
 
 
     def retrieve_image(self, table, filepath):
@@ -106,7 +129,7 @@ class Database:
         image = None
         logger.debug("Retrieving image %s from table %s...", filepath, table)
         try:
-            image = self.get_data('''SELECT image FROM {0} WHERE name = {1}'''.format(table, filepath))
+            image = self.get_data('''SELECT image FROM {0} WHERE name = '{1}' '''.format(table, filepath))
             if len(image) > 0:
                 image = image[0]
                 logger.info("Image %s retrieved!", filepath)
