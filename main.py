@@ -22,6 +22,7 @@ logger = logging.getLogger()
 def setup():
     setup_logger()
     db.commit_query('''CREATE TABLE IF NOT EXISTS Status (id INTEGER, state TEXT)''')
+    db.commit_query('''CREATE TABLE IF NOT EXISTS Images (date DATE, name TEXT NOT NULL, image BLOB NOT NULL)''')
     db.init_state("Status")
 
 
