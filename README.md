@@ -61,7 +61,7 @@ This project is licensed under **MIT** license, which means that you have the ri
 ## TODO
 List of known bugs / possible improvements:
 1. AJAX script is a mess, copy-pasted functions all over the place (due to lack of time), repeated calls can be made into functions
-2. When removing (5\*n+1)-th image will not reset the pagination
+2. When removing (5\*n+1)-th image the JS will not reset the pagination
 
 ### Authors
 1. Maciej Kleban ([DawnKai](https://github.com/Dawnkai))
