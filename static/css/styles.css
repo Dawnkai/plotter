@@ -8,6 +8,18 @@ html, body {
 	text-align: left !important;
 }
 
+.img-nav {
+	margin-left: auto;
+	text-align: right !important;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.pagination {
+	text-align: right !important;
+	justify-content: flex-end;
+}
+
 .main {
 	min-height: 100%;
 	min-height: 100vh;
