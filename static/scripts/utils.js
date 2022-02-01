@@ -78,6 +78,8 @@ $(document).ready(function() {
 	});
 	// Call when user uploads an image
 	$("#upload-form").submit(function(e) {
+		var el = document.getElementById("upload-resp");
+		if (el) { el.innerHTML = "<span><i>Uploading file, please wait...</i></span>"; }
 		e.preventDefault();
 		var formData = new FormData(this);
 		$.ajax({
@@ -88,7 +90,6 @@ $(document).ready(function() {
         	contentType: false,
         	processData: false,
 			success: function(data) {
-				var el = document.getElementById("upload-resp");
 				if (el) {
 					el.innerHTML = "<span style='color:green'>File uploaded successfully.</span>";
 				}
@@ -107,11 +108,29 @@ $(document).ready(function() {
 		$.ajax({
 			type: "POST",
 			url: "images",
-			data: '{"start": 0, "end": 10}',
 			success: function(data) {
 				img_idx = 0;
 				imgs = data.images;
-				displayImages();
+				displayImages("del");
+			},
+			error: function(xhr, status, error) {
+				err = JSON.parse(xhr.responseText);
+				alert(err.message);
+			},
+			contentType: "application/json",
+			dataType: "json"
+		});
+	}
+	// Do the same on plotting page, there is probably a shorter way to do it
+	// using functions
+	if (window.location.href.indexOf("plot") != -1) {
+		$.ajax({
+			type: "POST",
+			url: "images",
+			success: function(data) {
+				img_idx = 0;
+				imgs = data.images;
+				displayImages("plt");
 			},
 			error: function(xhr, status, error) {
 				err = JSON.parse(xhr.responseText);
@@ -125,10 +144,11 @@ $(document).ready(function() {
 
 // Display images based on img_idx
 // From (img_idx * 5) to (img_idx * 5 + 5) 
-function displayImages() {
+function displayImages(type) {
 	html = "<ul class='list-group'>";
 	for (var img of imgs.slice(img_idx * 5, (img_idx * 5) + 5)) {
-		html += "<a class='list-group-item list-group-item-action' onClick='getImage(\"";
+		if (type === "del") html += "<a class='list-group-item list-group-item-action' onClick='getImage(\"";
+		else html += "<a class='list-group-item list-group-item-action' onClick='getPlotImage(\"";
 		html += img;
 		html += "\")'>";
 		html += img;
@@ -173,6 +193,84 @@ function getPrevImages() {
 	displayImages();
 }
 
+function removeImage(val) {
+	img_idx = 0;
+	$.ajax({
+		type: "DELETE",
+		url: "images/" + val,
+		success: function() {
+			// TODO: Might be a good idea to move this into a function instead of copying it from
+			// function called upon images page loading
+			$.ajax({
+				type: "POST",
+				url: "images",
+				success: function(data) {
+					imgs = data.images;
+					displayImages();
+				},
+				error: function(xhr, status, error) {
+					err = JSON.parse(xhr.responseText);
+					alert(err.message);
+				},
+				contentType: "application/json",
+				dataType: "json"
+			});
+		},
+		error: function(xhr, status, error) {
+			err = JSON.parse(xhr.responseText);
+			alert(err.message);
+		}
+	});
+}
+
+
+// Initiate plotting of specified image
+function plotImage(val) {
+	var el = document.getElementById("plot-status");
+	if (el) {
+		el.innerHTML = "<span><i>Plotting your image, please wait...</i></span>";
+	}
+	$.ajax({
+		type: "POST",
+		url: "plot",
+		data: '{"image": "' + val + '"}',
+		success: function(data) {
+			if (el) {
+				el.innerHTML = "<span style='color:green'>Image successfully plotted!</span>";
+			}
+		},
+		error: function(xhr, status, error) {
+			err = JSON.parse(xhr.responseText);
+			if (el) {
+				el.innerHTML = "<span style='color:red'>" + err.message + "</span>";
+			}
+		},
+		contentType: "application/json",
+		dataType: "json"
+	});
+}
+
+
+// Get and display single image with option for plotting
+function getPlotImage(val) {
+	$.ajax({
+		type: "GET",
+		url: "images/" + val,
+		success: function() {
+			el = document.getElementById("img-list");
+			if (el) {
+				el.innerHTML = "<img style='width:100%;height:300px' src='display'/></br></br>";
+				el.innerHTML += "<button type='button' class='btn btn-secondary' style='margin-right:5px' onClick='displayImages()'>Cancel</button>";
+				el.innerHTML += "<button type='button' class='btn btn-primary' onClick='plotImage(\"" + val + "\")'>Plot</button>";
+			}
+		},
+		error: function(xhr, status, error) {
+			err = JSON.parse(xhr.responseText);
+			alert(err.message);
+		},
+	});
+}
+
 // Get and display single image based on val (which is a filename string)
 function getImage(val) {
 	$.ajax({
@@ -182,7 +280,8 @@ function getImage(val) {
 			el = document.getElementById("img-list");
 			if (el) {
 				el.innerHTML = "<img style='width:100%;height:300px' src='display'/></br></br>";
-				el.innerHTML += "<button type='button' class='btn btn-secondary' onClick='displayImages()'>Back</button>"
+				el.innerHTML += "<button type='button' class='btn btn-secondary' style='margin-right:5px' onClick='displayImages()'>Cancel</button>";
+				el.innerHTML += "<button type='button' class='btn btn-danger' onClick='removeImage(\"" + val + "\")'>Delete</button>";
 			}
 		},
 		error: function(xhr, status, error) {
