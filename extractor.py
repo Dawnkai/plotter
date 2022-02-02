@@ -20,6 +20,11 @@ class Extractor:
     
 
     def set_filepath(self, filepath):
+        """
+        Change the filepath of the image before loading it.
+        :param filepath: New filepath
+        :type filepath: str
+        """
         self.filepath = filepath
 
 
