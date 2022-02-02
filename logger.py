@@ -10,7 +10,7 @@ def setup_logger():
         'disable_existing_loggers': True,
         'formatters': {
             'standard': {
-                'format': "%(asctime)s [%(levelname)-5.5s]  %(message)s"
+                'format': "%(asctime)s [%(levelname)-5.5s] [%(module)s] (%(funcName)s) : %(message)s"
             }
         },
         'handlers': {
