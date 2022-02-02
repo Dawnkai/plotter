@@ -18,16 +18,22 @@ This repository contains the following files:
 1. `static/css/styles.css` - global stylesheet with styles used in the whole webapp
 2. `static/images` - this is where the app stores temporary images, **do not remove it**
 3. `static/scripts/utls.js` - AJAX and vanilla JS functions used by the webapp
-4. `templates/*.html` - pages of the webapp
-5. `camera.py` - script controlling the camera
-6. `database.py` - script for operating on the database
-7. `extractor.py` - script for extracting contours from images using OpenCV library
-8. `logger.py` - setup for logging:
+4. `static/scripts/camera.js` - script for interacting with camera API
+5. `static/scripts/images.js` - script for fetching images from the database
+6. `static/scripts/navigation.js` - script for navigating between pages
+7. `static/scripts/plot.js` - script for interacting with the plotter
+8. `static/scripts/stats.js` - script for fetching stats (plotter state, logs)
+9. `static/scripts/upload.js` - script for uploading images to server
+10. `templates/*.html` - pages of the webapp
+11. `camera.py` - script controlling the camera
+12. `database.py` - script for operating on the database
+13. `extractor.py` - script for extracting contours from images using OpenCV library
+14. `logger.py` - setup for logging:
 * Logs of level `DEBUG` will be saved to a file named `plotter.log`
 * Logs of level `INFO` will be printed to the console
-9. `main.py` - main server with all the endpoints, merging all parts together
-10. `plot.py` - script for working with the plotter
-11. `requirements.pip` - list of libraries required in the project
+15. `main.py` - main server with all the endpoints, merging all parts together
+16. `plot.py` - script for working with the plotter
+17. `requirements.pip` - list of libraries required in the project
 
 ## Installation
 1. Install python on your Raspberry Pi (Python 3+):
@@ -60,8 +66,7 @@ This project is licensed under **MIT** license, which means that you have the ri
 
 ## TODO
 List of known bugs / possible improvements:
-1. AJAX script is a mess, copy-pasted functions all over the place (due to lack of time), repeated calls can be made into functions
-2. When removing (5\*n+1)-th image the JS will not reset the pagination
+1. When removing (5\*n+1)-th image the JS will not reset the pagination
 
 ### Authors
 1. Maciej Kleban ([DawnKai](https://github.com/Dawnkai))
