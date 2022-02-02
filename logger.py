@@ -1,12 +1,17 @@
 import logging.config
 
 def setup_logger():
-    LOGGING_CONFIG = {
+    """
+    Start one logger with INFO level on the console and one with DEBUG level
+    in file that will be rewritten once it reaches 100kB.
+    """
+    logging_config = {
         'version': 1,
         'disable_existing_loggers': True,
         'formatters': {
             'standard': {
-                'format': "%(asctime)s [%(levelname)-5.5s]  %(message)s"
+                # pylint: disable=line-too-long
+                'format': "%(asctime)s [%(levelname)-5.5s] [%(module)s] (%(funcName)s) : %(message)s"
             }
         },
         'handlers': {
@@ -19,10 +24,9 @@ def setup_logger():
             'file': {
                 'level': 'DEBUG',
                 'formatter': 'standard',
-                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'class': 'logging.handlers.RotatingFileHandler',
                 'filename': 'plotter.log',
-                'when': 'D',
-                'interval': 1,
+                'maxBytes': 100000,
                 'backupCount': 1,
                 'encoding': 'utf-8',
                 'delay': False
@@ -37,4 +41,4 @@ def setup_logger():
         }
     }
 
-    logging.config.dictConfig(LOGGING_CONFIG)
+    logging.config.dictConfig(logging_config)
