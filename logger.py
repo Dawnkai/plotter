@@ -5,11 +5,12 @@ def setup_logger():
     Start one logger with INFO level on the console and one with DEBUG level
     in file that will be rewritten once it reaches 100kB.
     """
-    LOGGING_CONFIG = {
+    logging_config = {
         'version': 1,
         'disable_existing_loggers': True,
         'formatters': {
             'standard': {
+                # pylint: disable=line-too-long
                 'format': "%(asctime)s [%(levelname)-5.5s] [%(module)s] (%(funcName)s) : %(message)s"
             }
         },
@@ -40,4 +41,4 @@ def setup_logger():
         }
     }
 
-    logging.config.dictConfig(LOGGING_CONFIG)
+    logging.config.dictConfig(logging_config)

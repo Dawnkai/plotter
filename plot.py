@@ -1,5 +1,5 @@
-import RPi.GPIO as GPIO
 import time
+from RPi import GPIO
 
 
 class Plotter:
@@ -32,7 +32,7 @@ class Plotter:
         self.servo = GPIO.PWM(servo_pin, 50)
         self.servo.start(0)
 
-    
+
 
     def setup_motor(self, dst, motor_x):
         """
@@ -79,12 +79,12 @@ class Plotter:
         # Convert pixels to steps, by multiplying by 6
         dst_x = (dst[0] - self.pos[0]) * 106
         dst_y = (dst[1] - self.pos[1]) * 106
-    
-        if (dst_x != 0):
+
+        if dst_x != 0:
             self.setup_motor(dst_x, True)
             self.move_to(dst_x, True)
 
-        if (dst_y != 0):
+        if dst_y != 0:
             self.setup_motor(dst_y, False)
             self.move_to(dst_y, False)
 
@@ -114,7 +114,7 @@ class Plotter:
             time.sleep(0.20)
             self.servo.ChangeDutyCycle(0)
             self.pen = False
-    
+
 
     def plot(self, contours):
         """
@@ -136,7 +136,7 @@ class Plotter:
             for pos in contour:
                 self.move(pos)
             self.pen_up()
-        
+
         self.finish()
         # Disable all motors
         GPIO.cleanup()

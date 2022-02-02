@@ -23,8 +23,8 @@ class Database:
         try:
             con = sqlite3.connect(self.dbpath)
             logger.debug("New connection to DB created.")
-        except sqlite3.Error as e:
-            logger.error("Error while creating connection to DB : %s", e)
+        except sqlite3.Error as err:
+            logger.error("Error while creating connection to DB : %s", err)
         return con
 
 
@@ -43,13 +43,13 @@ class Database:
             cur.execute(query)
             con.commit()
             logger.debug("Query %s finished!", query)
-        except sqlite3.Error as e:
-            logger.error("Error while executing query %s : %s", query, e)
+        except sqlite3.Error as err:
+            logger.error("Error while executing query %s : %s", query, err)
         finally:
             if con is not None:
                 con.close()
 
-    
+
 
     def get_data(self, query):
         '''
@@ -66,13 +66,13 @@ class Database:
             cur.execute(query)
             logger.debug("Query %s executed!", query)
             result = cur.fetchall()
-        except sqlite3.Error as e:
-            logger.error("Error while executing query %s : %s", query, e)
+        except sqlite3.Error as err:
+            logger.error("Error while executing query %s : %s", query, err)
         finally:
             if con is not None:
                 con.close()
         return result
-    
+
 
     def image_exists(self, name, table):
         '''
@@ -92,8 +92,8 @@ class Database:
             if len(rows) > 0:
                 return True
             return False
-        except sqlite3.Error as e:
-            logger.error("SQL Error while cheking if image %s exists : %s", name, e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while cheking if image %s exists : %s", name, err)
         except Exception as ex:
             logger.error("Error while checking if image %s exists : %s", name, ex)
         finally:
@@ -135,14 +135,14 @@ class Database:
                     con.commit()
 
                 logger.info("Image %s saved!", filepath)
-            except sqlite3.Error as e:
-                logger.error("SQL Error while adding image %s : %s", filepath, e)
+            except sqlite3.Error as err:
+                logger.error("SQL Error while adding image %s : %s", filepath, err)
             except Exception as ex:
                 logger.error("Error while adding new image %s : %s", filepath, ex)
             finally:
                 if con is not None:
                     con.close()
-    
+
 
     def get_images(self, table):
         '''
@@ -156,8 +156,8 @@ class Database:
             rows = self.get_data('''SELECT name FROM {0}'''.format(table))
             data = [row[0] for row in rows]
             logger.debug("Images fetched.")
-        except sqlite3.Error as e:
-            logger.error("SQL Error while fetching images from table %s : %s", table, e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while fetching images from table %s : %s", table, err)
         except Exception as ex:
             logger.error("Error while fetching images from table %s : %s", table, ex)
         return data
@@ -174,15 +174,16 @@ class Database:
         image = None
         logger.debug("Retrieving image %s from table %s...", filepath, table)
         try:
-            image = self.get_data('''SELECT image FROM {0} WHERE name = '{1}' '''.format(table, filepath))
+            image = self.get_data('''SELECT image FROM {0} WHERE name = '{1}' '''.format(table,
+                                                                                         filepath))
             if len(image) > 0:
                 image = image[0]
                 logger.info("Image %s retrieved!", filepath)
             else:
                 logger.error("Image %s does not exist.", filepath)
                 image = None
-        except sqlite3.Error as e:
-            logger.error("SQL Error while fetching image %s : %s", filepath, e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while fetching image %s : %s", filepath, err)
         except Exception as ex:
             logger.error("Error while fetching image %s : %s", filepath, ex)
         return image
@@ -206,16 +207,17 @@ class Database:
             else:
                 logger.debug("Image %s does not exist, skipping removal...", image)
             logger.info("Image %s removed!", image)
-        except sqlite3.Error as e:
+            return removed
+        except sqlite3.Error as err:
             removed = False
-            logger.error("SQL Error while deleting image %s : %s", image, e)
+            logger.error("SQL Error while deleting image %s : %s", image, err)
+            return removed
         except Exception as ex:
             removed = False
             logger.error("Exception while deleting image %s : %s", image, ex)
-        finally:
             return removed
-    
-    
+
+
     def get_state(self, table):
         '''
         Fetch current state of the plotter.
@@ -236,8 +238,8 @@ class Database:
             else:
                 logger.error("More than one state is present, or none at all.")
                 state = "Error"
-        except sqlite3.Error as e:
-            logger.error("SQL Error while fetching plotter state : %s", e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while fetching plotter state : %s", err)
         except Exception as ex:
             logger.error("Exception while fetching plotter state : %s", ex)
         return state
@@ -254,12 +256,13 @@ class Database:
         try:
             state = self.get_data('''SELECT * FROM {0}'''.format(table))
             if len(state) == 0:
-                self.commit_query('''INSERT INTO {0} (id, state) VALUES (1, 'Idle')'''.format(table))
+                self.commit_query('''INSERT INTO {0} (id, state) VALUES (1, 'Idle')'''
+                                  .format(table))
                 logger.info("New state initialized!")
             else:
                 logger.debug("State table already populated, skipping...")
-        except sqlite3.Error as e:
-            logger.error("SQL Error while initializing new state : %s", e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while initializing new state : %s", err)
         except Exception as ex:
             logger.error("Exception while initializing new state : %s", ex)
 
@@ -275,9 +278,10 @@ class Database:
         '''
         logger.debug("Changing plotter state to %s...", new_state)
         try:
-            self.commit_query('''UPDATE {0} SET state = '{1}' WHERE id = 1'''.format(table, new_state))
+            self.commit_query('''UPDATE {0} SET state = '{1}' WHERE id = 1'''.format(table,
+                                                                                     new_state))
             logger.info("Plotter status changed to %s!", new_state)
-        except sqlite3.Error as e:
-            logger.error("SQL Error while changing state to %s : %s", new_state, e)
+        except sqlite3.Error as err:
+            logger.error("SQL Error while changing state to %s : %s", new_state, err)
         except Exception as ex:
             logger.error("Exception while changing state to %s : %s", new_state, ex)

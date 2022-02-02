@@ -2,13 +2,13 @@ import json
 import logging
 import os
 
+from flask import Flask, redirect, render_template, jsonify, request, url_for, send_file
+
 from database import Database
 #from camera import Camera
 from extractor import Extractor
 #from plot import Plotter
 from logger import setup_logger
-
-from flask import Flask, redirect, render_template, jsonify, request, url_for, send_file
 
 
 
@@ -34,7 +34,8 @@ def setup():
     '''
     setup_logger()
     db.commit_query('''CREATE TABLE IF NOT EXISTS Status (id INTEGER, state TEXT)''')
-    db.commit_query('''CREATE TABLE IF NOT EXISTS Images (date DATE, name TEXT NOT NULL, image BLOB NOT NULL)''')
+    db.commit_query('''CREATE TABLE IF NOT EXISTS Images (date DATE, name TEXT NOT NULL,
+                       image BLOB NOT NULL)''')
     db.init_state("Status")
 
 
@@ -73,7 +74,7 @@ def plot_page():
     # GET
     if request.method == "GET":
         return render_template("plot.html")
-    
+
     # POST
     try:
         plotting = db.get_state("Status")
@@ -87,10 +88,9 @@ def plot_page():
                     return jsonify({"message": "Image plotted."}), 200
                 return jsonify({"message": "Cannot plot imagge."}), 403
             return jsonify({"message": "Image does not exist"}), 404
-        else:
-            return jsonify({'message': 'Plotter is busy.'}), 403
-    except Exception as e:
-        logger.error("Error while plotting an image: %s", e)
+        return jsonify({'message': 'Plotter is busy.'}), 403
+    except Exception as err:
+        logger.error("Error while plotting an image: %s", err)
         return jsonify({"message": "Unable to plot image"}), 403
 
 
@@ -102,13 +102,12 @@ def take_picture():
         return render_template("camera.html")
 
     # POST
-    else:
-        try:
-            #cam.take_picture()
-            return jsonify({'message': 'Picture taken successfully.'}), 201
-        except Exception as e:
-            logger.error("Error while taking a picture: %s", e)
-            return jsonify({'message': 'Problem with camera'}), 403
+    try:
+        #cam.take_picture()
+        return jsonify({'message': 'Picture taken successfully.'}), 201
+    except Exception as err:
+        logger.error("Error while taking a picture: %s", err)
+        return jsonify({'message': 'Problem with camera'}), 403
 
 
 @app.route("/images", methods=["GET", "POST"])
@@ -116,11 +115,11 @@ def images():
     '''View for browsing images in the database.'''
     if request.method == "GET":
         return render_template("images.html")
-    else:
-        try:
-            return jsonify({'images': db.get_images("images")}), 200
-        except KeyError:
-            return jsonify({'message': 'Request in incorrect format'}), 401
+    # POST
+    try:
+        return jsonify({'images': db.get_images("images")}), 200
+    except KeyError:
+        return jsonify({'message': 'Request in incorrect format'}), 401
 
 
 @app.route("/images/<string:name>", methods=["GET", "DELETE"])
@@ -169,12 +168,11 @@ def upload_image():
             # Only jpg files are supported
             if "jpg" in file.filename.rsplit('.', 1)[1].lower():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"))
-                db.store_image(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"), "images", file.filename)
+                db.store_image(os.path.join(app.config['UPLOAD_FOLDER'], "input.jpg"), "images",
+                               file.filename)
                 return jsonify({"message": "Image uploaded."}), 200
-            else:
-                return jsonify({"message": "Image is not a jpg."}), 401
-        else:
-            return jsonify({"message": "File is not an image."}), 401
+            return jsonify({"message": "Image is not a jpg."}), 401
+        return jsonify({"message": "File is not an image."}), 401
     return render_template("upload.html")
 
 
@@ -184,8 +182,8 @@ def get_status():
     try:
         status = db.get_state("Status")
         return jsonify({"message": status}), 200
-    except Exception as e:
-        logger.error("Error while getting status : %s", e)
+    except Exception as err:
+        logger.error("Error while getting status : %s", err)
         return jsonify({"message": "Error"}), 200
 
 
@@ -194,8 +192,8 @@ def get_logs():
     '''View for downloading plotter logs.'''
     try:
         return send_file("plotter.log", as_attachment=True)
-    except Exception as e:
-        logger.error("Error while sending logs : %s", e)
+    except Exception as err:
+        logger.error("Error while sending logs : %s", err)
         return jsonify({"message": "Unable to send logs"}), 403
 
 
