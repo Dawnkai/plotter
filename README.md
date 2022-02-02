@@ -3,10 +3,11 @@
 
 Project used for Embedded Systems project in Poznań University of Technology.
 The goals of this project are:
-* Taking pictures with PI camera
-* Extracting their contours
+* Extracting contours from images
 * Drawing them on A5 paper
 * Saving them in a database for later reusage
+
+The project currently supports uploading images from computer or taking pictures with PiCamera.
 
 ## Hardware
 * Raspberry Pi 2 Model B V1.1
@@ -14,15 +15,19 @@ The goals of this project are:
 
 ## Repository structure
 This repository contains the following files:
-1. `camera.py` - script controlling the camera (taking and saving pictures **locally**)
-2. `logger.py` - setup for logging:
+1. `static/css/styles.css` - global stylesheet with styles used in the whole webapp
+2. `static/images` - this is where the app stores temporary images, **do not remove it**
+3. `static/scripts/utls.js` - AJAX and vanilla JS functions used by the webapp
+4. `templates/*.html` - pages of the webapp
+5. `camera.py` - script controlling the camera
+6. `database.py` - script for operating on the database
+7. `extractor.py` - script for extracting contours from images using OpenCV library
+8. `logger.py` - setup for logging:
 * Logs of level `DEBUG` will be saved to a file named `plotter.log`
 * Logs of level `INFO` will be printed to the console
-3. `database.py` - script storing images and retrieving them from the database
-4. `app/server.py` - web server hosting the frontend app
-5. `app/static/*` - static files (stylesheets, script files) used in webpages
-6. `app/templates/*` - webpages used in the project
-7. `requirements.pip` - list of libraries required in the project
+9. `main.py` - main server with all the endpoints, merging all parts together
+10. `plot.py` - script for working with the plotter
+11. `requirements.pip` - list of libraries required in the project
 
 ## Installation
 1. Install python on your Raspberry Pi (Python 3+):
@@ -52,6 +57,11 @@ Before submitting your pull request please check your code with pylint - setting
 
 ## Copyrights
 This project is licensed under **MIT** license, which means that you have the right to distribute, modify and use this project in your own projects (even under more strict license) so long as you provide the original authors whose work you are using in your project and do not hold them liable.
+
+## TODO
+List of known bugs / possible improvements:
+1. AJAX script is a mess, copy-pasted functions all over the place (due to lack of time), repeated calls can be made into functions
+2. When removing (5\*n+1)-th image the JS will not reset the pagination
 
 ### Authors
 1. Maciej Kleban ([DawnKai](https://github.com/Dawnkai))

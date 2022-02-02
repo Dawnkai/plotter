@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+{% block content %}
+	<div class="back-btn">
+		<button type="button" class="btn btn-primary btn-sm" id="back">Back</button>
+	</div>
+    </br>
+	<h2 class="card-title">Camera</h2>
+    <h5><u>Press the button below to take a picture.</u></h5>
+    </br>
+    <p><i>Please be aware that the camera needs few seconds to start up.</br>
+    <b style="color:red">Do not exit this dialog until the picture is taken or an error occurs.</b></i></p>
+    </br>
+    <div id="cam-status"></div>
+	<button type="button" class="btn btn-primary btn-lg mb-2" id="camera">Take a picture</button>
+{% endblock %}

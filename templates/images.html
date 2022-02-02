@@ -1,0 +1,32 @@
+{% extends "index.html" %}
+{% block content %}
+	<div class="back-btn">
+		<button type="button" class="btn btn-primary btn-sm" id="back">Back</button>
+	</div>
+    </br>
+	<h2 class="card-title">Images</h2>
+	<div id="img-list">
+		<ul class="list-group">
+			<li class="list-group-item">Fetching images...</li>
+		</ul>
+	</div>
+	<div id="img-status"></div>
+	</br>
+	<div class="img-nav">
+		<ul class="pagination" >
+			<li class="page-item" >
+				<a class="page-link" href="#" aria-label="Previous" onClick="getPrevImages(this)">
+				<span aria-hidden="true">&laquo;</span>
+				</a>
+			</li>
+			<li class="page-item" >
+				<a class="page-link" href="#" aria-label="Next" onClick="getNextImages(this)">
+				<span aria-hidden="true">&raquo;</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<p id="img-pag" class="pagination">
+		Images : 0 - 5
+	</p>
+{% endblock %}

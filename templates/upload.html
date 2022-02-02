@@ -1,0 +1,18 @@
+{% extends "index.html" %}
+{% block content %}
+	<div class="back-btn">
+		<button type="button" class="btn btn-primary btn-sm" id="back">Back</button>
+	</div>
+    </br>
+	<h2 class="card-title">Upload</h2>
+    <h5><u>Press the button below to upload an image.</u></h5>
+    <p><i>Only .jpg files are supported.</i></p>
+    </br>
+    <form id="upload-form" enctype="multipart/form-data" method="post">
+        <input class="form-control form-control-lg" id="file-input" name="img-file" type="file" required />
+        </br>
+        <button type="submit" class="btn btn-primary mb-2" id="upload-btn">Upload</button>
+    </form>
+    </br>
+    <div id="upload-resp"></div>
+{% endblock %}
