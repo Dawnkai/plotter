@@ -123,12 +123,10 @@ class Plotter:
         Prevent the servo from going downwards if the pen is already down.
         """
         if not self.pen:
-            #self.servo.ChangeDutyCycle(-2.5) # Quarter rotation downwards
             self.servo.mid()
             time.sleep(0.30)
             self.servo.max()
             time.sleep(0.40)
-            #self.servo.ChangeDutyCycle(0)
             self.pen = True
 
 
@@ -139,12 +137,10 @@ class Plotter:
         Also called when the contour group is changed.
         """
         if self.pen:
-            #self.servo.ChangeDutyCycle(2.5) # Quarter rotation upwards
             self.servo.mid()
             time.sleep(0.30)
             self.servo.min()
             time.sleep(0.30)
-            #self.servo.ChangeDutyCycle(0)
             self.pen = False
 
 
@@ -198,9 +194,5 @@ if __name__ == "__main__":
     extractor = Extractor()
     extractor.set_filepath("PP.png")
     ploter = Plotter()
-    #contours = [[[90, 100], [91, 100], [92, 100], [92, 101], [92, 102], [91, 102], [90, 102], [90, 101], [90, 100]],
-    # [[60, 60], [61, 61], [62, 62], [63, 61], [64, 60], [63, 59], [62, 58], [61, 59], [60, 60]]]
-    #contours1 = [[[0, 0],[218, 121]]]
     cont =extractor.get_contours()
-    #print(cont)
     ploter.plot(cont)
