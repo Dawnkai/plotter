@@ -34,16 +34,14 @@ class Plotter:
         # Start the servo
         factory = PiGPIOFactory()
         self.servo = Servo(servo_pin, pin_factory=factory)
-        #self.servo = GPIO.PWM(servo_pin, 50)
-        #self.servo.start(0)
-
     
 
     def setup_motor(self, dst, motor_x):
         """
-        Setup appropriate motor pins before moving it across the axis.
+        Setup appropriate motor pins before moving it across the axis and return motor direction.
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
+        :return: Motor direction specifier
         """
         if motor_x:
             # move LEFT
@@ -59,7 +57,7 @@ class Plotter:
             if dst < 0:
                 GPIO.output(self.dir_y, GPIO.LOW)
                 return 1
-            #move UP
+            # move UP
             else:
                 GPIO.output(self.dir_y, GPIO.HIGH)
                 return -1
@@ -67,7 +65,7 @@ class Plotter:
 
     def move_to(self, dst, motor_x):
         """
-        Move the motor on specified axis to selected position.
+        Move the motor on specified axis to default position.
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
         """
@@ -83,7 +81,6 @@ class Plotter:
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
         """
-        #for _ in range(abs(dst)):
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.HIGH)
         time.sleep(self.delay)
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.LOW)
@@ -99,23 +96,24 @@ class Plotter:
         # Convert pixels to steps, by multiplying by 6
         dst_x = (dst[0] - self.pos[0]) * 106
         dst_y = (dst[1] - self.pos[1]) * 106
-
+        
+        # define motors directions
         if (dst_x != 0):
             step_x = self.setup_motor(dst_x, True)
         if (dst_y != 0):
             step_y = self.setup_motor(dst_y, False)
 
+        # move to location    
         while (dst_x != 0 or dst_y != 0):
             if (dst_x != 0):
                 self.move_by(dst_x, True)
                 dst_x += step_x
-                #print(dst_x)
 
             if (dst_y != 0):
                 self.move_by(dst_y, False)
                 dst_y += step_y
-                #print(dst_y)
-
+        
+        #update position
         self.pos = (dst[0], dst[1])
 
 
