@@ -53,7 +53,7 @@ sudo apt-get install python3-pip
 ```
 pip3 install -r requirements.pip
 ```
-4. Ensure that the plotter is in starting position (0 on X and 0 on Y axis, plotter will move from and return there)!
+4. **Ensure that the plotter is in starting position (0 on X and 0 on Y axis, plotter will move from and return there)!**
 5. Start the server:
 ```
 sudo chmod 777 entrypoint.sh
