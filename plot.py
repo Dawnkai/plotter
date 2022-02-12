@@ -1,7 +1,9 @@
-import RPi.GPIO as GPIO
+import time
+
+from RPi import GPIO
 from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Servo
-import time
+from extractor import Extractor
 
 
 class Plotter:
@@ -47,18 +49,16 @@ class Plotter:
                 GPIO.output(self.dir_x, GPIO.LOW)
                 return 1
             # move RIGHT
-            else:
-                GPIO.output(self.dir_x, GPIO.HIGH)
-                return -1
+            GPIO.output(self.dir_x, GPIO.HIGH)
+            return -1
         else:
             # move DOWN
             if dst < 0:
                 GPIO.output(self.dir_y, GPIO.LOW)
                 return 1
             #move UP
-            else:
-                GPIO.output(self.dir_y, GPIO.HIGH)
-                return -1
+            GPIO.output(self.dir_y, GPIO.HIGH)
+            return -1
 
 
     def move_to(self, dst, motor_x):
@@ -74,13 +74,11 @@ class Plotter:
             time.sleep(self.delay)
 
 
-    def move_by(self, dst, motor_x):
+    def move_by(self, motor_x):
         """
         Move the motor on specified axis to selected position.
-        :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
         """
-        #for _ in range(abs(dst)):
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.HIGH)
         time.sleep(self.delay)
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.LOW)
@@ -98,18 +96,18 @@ class Plotter:
         dst_x = (dst[0] - self.pos[0]) * 106
         dst_y = (dst[1] - self.pos[1]) * 106
 
-        if (dst_x != 0):
+        if dst_x != 0:
             step_x = self.setup_motor(dst_x, True)
-        if (dst_y != 0):
+        if dst_y != 0:
             step_y = self.setup_motor(dst_y, False)
 
-        while (dst_x != 0 or dst_y != 0):
-            if (dst_x != 0):
-                self.move_by(dst_x, True)
+        while dst_x != 0 or dst_y != 0:
+            if dst_x != 0:
+                self.move_by(True)
                 dst_x += step_x
 
-            if (dst_y != 0):
-                self.move_by(dst_y, False)
+            if dst_y != 0:
+                self.move_by(False)
                 dst_y += step_y
 
         self.pos = (dst[0], dst[1])
