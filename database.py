@@ -8,8 +8,8 @@ logger = logging.getLogger()
 class Database:
     """
     Node resposible for storing images in the database and retrieving them from it.
-    :param con: Connection object used to connect to database with
-    :param cur: Cursor obeject used to invoke commands on the database
+    :param dbpath: Full filepath to database .db file
+    :type dbpath: str
     """
     def __init__(self, dbpath):
         self.dbpath = dbpath
@@ -18,6 +18,7 @@ class Database:
     def get_connection(self):
         '''
         Connect to the database.
+        :return: connection object used to interact with database
         '''
         con = None
         try:
@@ -56,6 +57,7 @@ class Database:
         Receive data from database.
         :param query: SQL query to execute (without commit)
         :type query: str
+        :return: MultiDict containing requested data
         '''
         con = None
         result = None
@@ -81,6 +83,7 @@ class Database:
         :type name: str
         :param table: Table where images are stored
         :type table: str
+        :return: whether object exists (True) or not (False)
         '''
         logger.debug("Checking if image %s already exists...", name)
         con = None
@@ -149,6 +152,7 @@ class Database:
         Get all image names from table.
         :param table: Table name to fetch images from
         :type table: str
+        :return: List containing images' names
         '''
         logger.debug("Fetching images from table %s...", table)
         data = None
@@ -170,6 +174,7 @@ class Database:
         :type table: str
         :param filepath: Absolute filepath of the image to fetch
         :type filepath: str
+        :return: requested image in Bytes format
         '''
         image = None
         logger.debug("Retrieving image %s from table %s...", filepath, table)
@@ -227,6 +232,7 @@ class Database:
         * Error - unspecified error, assistance requested
         :param table: Table name where states are stored
         :type table: str
+        :return: state of the plotter
         '''
         state = "Error"
         logger.debug("Retrieving state of the plotter...")
