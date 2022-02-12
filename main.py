@@ -104,7 +104,8 @@ def take_picture():
     # POST
     try:
         cam.take_picture()
-        db.store_image("static/cam.jpg", "Images", "cam" + datetime.now().strftime("-%d-%m-%Y-%H-%M-%S") + ".jpg")
+        db.store_image("static/cam.jpg", "Images",
+                       "cam" + datetime.now().strftime("-%d-%m-%Y-%H-%M-%S") + ".jpg")
         return jsonify({'message': 'Picture taken successfully.'}), 201
     except Exception as err:
         logger.error("Error while taking a picture: %s", err)
