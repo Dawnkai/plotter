@@ -1,7 +1,6 @@
 import logging
-from picamera import PiCamera
 from time import sleep
-from datetime import datetime
+from picamera import PiCamera
 
 logger = logging.getLogger()
 
