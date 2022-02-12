@@ -2,28 +2,28 @@ import json
 import logging
 import os
 
+from datetime import datetime
+
 from flask import Flask, redirect, render_template, jsonify, request, url_for, send_file
 
 from database import Database
-#from camera import Camera
+from camera import Camera
 from extractor import Extractor
-#from plot import Plotter
+from plot import Plotter
 from logger import setup_logger
-
 
 
 # Setup Flask app
 app = Flask(__name__)
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = 'static/images'
 
 # Assemble plotter parts
 db = Database("data.db")
-#cam = Camera()
+cam = Camera()
 ext = Extractor()
-#plotter = Plotter()
+plotter = Plotter()
 logger = logging.getLogger()
-
 
 
 def setup():
@@ -56,7 +56,7 @@ def plot(image):
         db.change_state("Status", "Busy")
         ext.set_filepath('static/plot.jpg')
         # Plot the image
-        #plotter.plot(ext.get_contours())
+        plotter.plot(ext.get_contours())
         db.change_state("Status", "Idle")
         plotted = True
     return plotted
@@ -103,7 +103,8 @@ def take_picture():
 
     # POST
     try:
-        #cam.take_picture()
+        cam.take_picture()
+        db.store_image("static/cam.jpg", "Images", "cam" + datetime.now().strftime("-%d-%m-%Y-%H-%M-%S") + ".jpg")
         return jsonify({'message': 'Picture taken successfully.'}), 201
     except Exception as err:
         logger.error("Error while taking a picture: %s", err)
@@ -206,7 +207,8 @@ def get_stats():
 
 if __name__ == "__main__":
     logger.debug("Setting up the server...")
+    plotter.pen_up()
     setup()
     logger.info("Server ready to work!")
     app.logger.setLevel(logging.INFO)
-    app.run(debug=True)
+    app.run(debug=False, port=5000, host='0.0.0.0')
