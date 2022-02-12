@@ -2,7 +2,6 @@ import RPi.GPIO as GPIO
 from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Servo
 import time
-from extractor import Extractor
 
 
 class Plotter:
@@ -34,14 +33,13 @@ class Plotter:
         # Start the servo
         factory = PiGPIOFactory()
         self.servo = Servo(servo_pin, pin_factory=factory)
-    
+
 
     def setup_motor(self, dst, motor_x):
         """
-        Setup appropriate motor pins before moving it across the axis and return motor direction.
+        Setup appropriate motor pins before moving it across the axis.
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
-        :return: Motor direction specifier
         """
         if motor_x:
             # move LEFT
@@ -57,7 +55,7 @@ class Plotter:
             if dst < 0:
                 GPIO.output(self.dir_y, GPIO.LOW)
                 return 1
-            # move UP
+            #move UP
             else:
                 GPIO.output(self.dir_y, GPIO.HIGH)
                 return -1
@@ -65,7 +63,7 @@ class Plotter:
 
     def move_to(self, dst, motor_x):
         """
-        Move the motor on specified axis to default position.
+        Move the motor on specified axis to selected position.
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
         """
@@ -75,16 +73,19 @@ class Plotter:
             GPIO.output(self.step_x if motor_x else self.step_y, GPIO.LOW)
             time.sleep(self.delay)
 
+
     def move_by(self, dst, motor_x):
         """
         Move the motor on specified axis to selected position.
         :param @dst: Distance to travel (in steps)
         :param @motor_x: Whether to move the X axis motor or Y axis motor
         """
+        #for _ in range(abs(dst)):
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.HIGH)
         time.sleep(self.delay)
         GPIO.output(self.step_x if motor_x else self.step_y, GPIO.LOW)
         time.sleep(self.delay)
+
 
     def move(self, dst):
         """
@@ -96,14 +97,12 @@ class Plotter:
         # Convert pixels to steps, by multiplying by 6
         dst_x = (dst[0] - self.pos[0]) * 106
         dst_y = (dst[1] - self.pos[1]) * 106
-        
-        # define motors directions
+
         if (dst_x != 0):
             step_x = self.setup_motor(dst_x, True)
         if (dst_y != 0):
             step_y = self.setup_motor(dst_y, False)
 
-        # move to location    
         while (dst_x != 0 or dst_y != 0):
             if (dst_x != 0):
                 self.move_by(dst_x, True)
@@ -112,8 +111,7 @@ class Plotter:
             if (dst_y != 0):
                 self.move_by(dst_y, False)
                 dst_y += step_y
-        
-        #update position
+
         self.pos = (dst[0], dst[1])
 
 
@@ -188,11 +186,3 @@ class Plotter:
 
         self.pen_up()
         self.pos = (0, 0)
-
-
-if __name__ == "__main__":
-    extractor = Extractor()
-    extractor.set_filepath("PP.png")
-    ploter = Plotter()
-    cont =extractor.get_contours()
-    ploter.plot(cont)
