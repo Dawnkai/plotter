@@ -53,12 +53,13 @@ sudo apt-get install python3-pip
 ```
 pip3 install -r requirements.pip
 ```
-4. Start the server:
+4. Ensure that the plotter is in starting position (0 on X and 0 on Y axis, plotter will move from and return there)!
+5. Start the server:
 ```
 sudo chmod 777 entrypoint.sh
 ./entrypoint.sh
 ```
-5. Navigate to `http://127.0.0.1:5000/` or `http://0.0.0.0:5000/` in your browser and you are good to go!
+6. Navigate to `http://127.0.0.1:5000/` or `http://0.0.0.0:5000/` in your browser and you are good to go!
 
 ## Contributing
 Before submitting your pull request please check your code with pylint - settings for pylint are available in `.pylintrc` file. Github Actions will automatically run it on your code on every pull request. Please also remember this is a school project therefore the repository may become inactive after a while when its authors will graduate.
