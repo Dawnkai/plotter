@@ -3,3 +3,4 @@ picamera==1.13
 # OpenCV is problematic, running newer versions will hang on older Pis
 # See https://stackoverflow.com/questions/63669752/building-wheel-for-opencv-python-pep-517-runs-forever?noredirect=1&lq=1
 opencv-python==4.0.0.12
+gpiozero==1.6.2
