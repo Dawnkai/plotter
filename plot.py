@@ -3,7 +3,6 @@ import time
 from RPi import GPIO
 from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import Servo
-from extractor import Extractor
 
 
 class Plotter:
@@ -51,14 +50,13 @@ class Plotter:
             # move RIGHT
             GPIO.output(self.dir_x, GPIO.HIGH)
             return -1
-        else:
-            # move DOWN
-            if dst < 0:
-                GPIO.output(self.dir_y, GPIO.LOW)
-                return 1
-            #move UP
-            GPIO.output(self.dir_y, GPIO.HIGH)
-            return -1
+        # move DOWN
+        if dst < 0:
+            GPIO.output(self.dir_y, GPIO.LOW)
+            return 1
+        #move UP
+        GPIO.output(self.dir_y, GPIO.HIGH)
+        return -1
 
 
     def move_to(self, dst, motor_x):
