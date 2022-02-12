@@ -27,13 +27,14 @@ This repository contains the following files:
 10. `templates/*.html` - pages of the webapp
 11. `camera.py` - script controlling the camera
 12. `database.py` - script for operating on the database
-13. `extractor.py` - script for extracting contours from images using OpenCV library
-14. `logger.py` - setup for logging:
+13. `entrypoint.sh` - bash script used to start the app
+14. `extractor.py` - script for extracting contours from images using OpenCV library
+15. `logger.py` - setup for logging:
 * Logs of level `DEBUG` will be saved to a file named `plotter.log`
 * Logs of level `INFO` will be printed to the console
-15. `main.py` - main server with all the endpoints, merging all parts together
-16. `plot.py` - script for working with the plotter
-17. `requirements.pip` - list of libraries required in the project
+16. `main.py` - main server with all the endpoints, merging all parts together
+17. `plot.py` - script for working with the plotter
+18. `requirements.pip` - list of libraries required in the project
 
 ## Installation
 1. Install python on your Raspberry Pi (Python 3+):
@@ -52,11 +53,13 @@ sudo apt-get install python3-pip
 ```
 pip3 install -r requirements.pip
 ```
-4. Start the server:
+4. **Ensure that the plotter is in starting position (0 on X and 0 on Y axis, plotter will move from and return there)!**
+5. Start the server:
 ```
-python3 server.py
+sudo chmod 777 entrypoint.sh
+./entrypoint.sh
 ```
-5. Navigate to `http://127.0.0.1:5000/` or `http://0.0.0.0:5000/` in your browser and you are good to go!
+6. Navigate to `http://127.0.0.1:5000/` or `http://0.0.0.0:5000/` in your browser and you are good to go!
 
 ## Contributing
 Before submitting your pull request please check your code with pylint - settings for pylint are available in `.pylintrc` file. Github Actions will automatically run it on your code on every pull request. Please also remember this is a school project therefore the repository may become inactive after a while when its authors will graduate.
@@ -70,4 +73,5 @@ List of known bugs / possible improvements:
 
 ### Authors
 1. Maciej Kleban ([DawnKai](https://github.com/Dawnkai))
-2. Ariel Antonowicz as [teacher](http://www.cs.put.poznan.pl/aantonowicz/)
+2. Jakub Dunajko ([Cubaster](https://github.com/Cubaster))
+3. Ariel Antonowicz as [teacher](http://www.cs.put.poznan.pl/aantonowicz/)

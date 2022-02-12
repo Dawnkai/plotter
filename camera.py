@@ -1,6 +1,5 @@
 import logging
 from time import sleep
-from datetime import datetime
 from picamera import PiCamera
 
 logger = logging.getLogger()
@@ -9,18 +8,18 @@ logger = logging.getLogger()
 class Camera:
     """
     Main camera node. Responsible for taking pictures and saving them locally.
+    :param camera: If you want to use existing camera, pass it here
+    :type camera: PiCamera
     :param filename: Absolute filepath (without extension) where node will save images
-    :type arg: str
+    :type filename: str
     :param width: Width of the image
     :type width: int
     :param height: Height of the image
     :type height: int
     """
-
-
-    def __init__(self, filename = "/home/pi/Desktop/plotter/static/cam",
+    def __init__(self, camera = None, filename = "/home/pi/Desktop/plotter/static/cam.jpg",
                  width = 640, height = 480):
-        self.camera = PiCamera()
+        self.camera = camera
         self.filename = filename
         self.width = width
         self.height = height
@@ -83,10 +82,9 @@ class Camera:
         Take and save a picture on the local drive.
         '''
         logger.debug("Taking picture, please wait 3 seconds...")
-        sleep(2)
+        sleep(5)
         # All pictures have appended time and date for easy search
-        filename = self.camera.capture(self.filename + datetime.now()
-                                       .strftime("-%d-%m-%Y-%H-%M-%S") + ".jpg")
+        filename = self.camera.capture(self.filename)
         logger.debug("Picture saved to %s.", filename)
 
 
@@ -94,8 +92,10 @@ class Camera:
         '''
         Take new picture.
         '''
+        self.camera = PiCamera()
         logger.debug("Preparing to take a picture...")
         self.camera.start_preview()
         self.save_picture()
         self.camera.stop_preview()
+        self.camera.close()
         logger.info("Picture taken successfully!")

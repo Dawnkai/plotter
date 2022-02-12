@@ -1,5 +1,8 @@
 import time
+
 from RPi import GPIO
+from gpiozero.pins.pigpio import PiGPIOFactory
+from gpiozero import Servo
 
 
 class Plotter:
@@ -16,7 +19,7 @@ class Plotter:
     """
     def __init__(self, dir_x_pin = 20, dir_y_pin = 26, step_x_pin = 21,
                  step_y_pin = 19, mode = (14,15,18), res = (0,0,1),
-                 delay = 0.0208 / 32, servo_pin = 13):
+                 delay = 0.0208 / 28, servo_pin = 12):
         self.dir_x = dir_x_pin
         self.dir_y = dir_y_pin
         self.step_x = step_x_pin
@@ -27,11 +30,10 @@ class Plotter:
         # Position of the plotter pen
         self.pos = (0, 0)
         # Whether the pen is drawing or not
-        self.pen = False
+        self.pen = True
         # Start the servo
-        self.servo = GPIO.PWM(servo_pin, 50)
-        self.servo.start(0)
-
+        factory = PiGPIOFactory()
+        self.servo = Servo(servo_pin, pin_factory=factory)
 
 
     def setup_motor(self, dst, motor_x):
@@ -44,16 +46,17 @@ class Plotter:
             # move LEFT
             if dst < 0:
                 GPIO.output(self.dir_x, GPIO.LOW)
+                return 1
             # move RIGHT
-            else:
-                GPIO.output(self.dir_x, GPIO.HIGH)
-        else:
-            # move DOWN
-            if dst < 0:
-                GPIO.output(self.dir_y, GPIO.LOW)
-            #move UP
-            else:
-                GPIO.output(self.dir_y, GPIO.HIGH)
+            GPIO.output(self.dir_x, GPIO.HIGH)
+            return -1
+        # move DOWN
+        if dst < 0:
+            GPIO.output(self.dir_y, GPIO.LOW)
+            return 1
+        #move UP
+        GPIO.output(self.dir_y, GPIO.HIGH)
+        return -1
 
 
     def move_to(self, dst, motor_x):
@@ -69,6 +72,17 @@ class Plotter:
             time.sleep(self.delay)
 
 
+    def move_by(self, motor_x):
+        """
+        Move the motor on specified axis to selected position.
+        :param @motor_x: Whether to move the X axis motor or Y axis motor
+        """
+        GPIO.output(self.step_x if motor_x else self.step_y, GPIO.HIGH)
+        time.sleep(self.delay)
+        GPIO.output(self.step_x if motor_x else self.step_y, GPIO.LOW)
+        time.sleep(self.delay)
+
+
     def move(self, dst):
         """
         Move the motors to their destination.
@@ -81,12 +95,18 @@ class Plotter:
         dst_y = (dst[1] - self.pos[1]) * 106
 
         if dst_x != 0:
-            self.setup_motor(dst_x, True)
-            self.move_to(dst_x, True)
-
+            step_x = self.setup_motor(dst_x, True)
         if dst_y != 0:
-            self.setup_motor(dst_y, False)
-            self.move_to(dst_y, False)
+            step_y = self.setup_motor(dst_y, False)
+
+        while dst_x != 0 or dst_y != 0:
+            if dst_x != 0:
+                self.move_by(True)
+                dst_x += step_x
+
+            if dst_y != 0:
+                self.move_by(False)
+                dst_y += step_y
 
         self.pos = (dst[0], dst[1])
 
@@ -97,9 +117,10 @@ class Plotter:
         Prevent the servo from going downwards if the pen is already down.
         """
         if not self.pen:
-            self.servo.ChangeDutyCycle(-2.5) # Quarter rotation downwards
-            time.sleep(0.20)
-            self.servo.ChangeDutyCycle(0)
+            self.servo.mid()
+            time.sleep(0.30)
+            self.servo.max()
+            time.sleep(0.40)
             self.pen = True
 
 
@@ -110,9 +131,10 @@ class Plotter:
         Also called when the contour group is changed.
         """
         if self.pen:
-            self.servo.ChangeDutyCycle(2.5) # Quarter rotation upwards
-            time.sleep(0.20)
-            self.servo.ChangeDutyCycle(0)
+            self.servo.mid()
+            time.sleep(0.30)
+            self.servo.min()
+            time.sleep(0.30)
             self.pen = False
 
 
@@ -131,10 +153,12 @@ class Plotter:
         GPIO.setup(self.step_x, GPIO.OUT)
         GPIO.setup(self.step_y, GPIO.OUT)
 
+        self.pen_up()
         for contour in contours:
-            self.pen_down()
-            for pos in contour:
+            for pos in [val[0] for val in contour]:
                 self.move(pos)
+                self.pen_down()
+
             self.pen_up()
 
         self.finish()
@@ -156,5 +180,5 @@ class Plotter:
         self.setup_motor(dst_y, False)
         self.move_to(dst_y, False)
 
+        self.pen_up()
         self.pos = (0, 0)
-        GPIO.cleanup()
